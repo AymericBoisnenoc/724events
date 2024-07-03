@@ -1,35 +1,49 @@
 import { useEffect, useState } from "react";
 import { useData } from "../../contexts/DataContext";
 import { getMonth } from "../../helpers/Date";
-
 import "./style.scss";
 
 const Slider = () => {
   const { data } = useData();
   const [index, setIndex] = useState(0);
-  const byDateDesc = data?.focus.sort((evtA, evtB) =>
-    new Date(evtA.date) < new Date(evtB.date) ? -1 : 1
+
+  // Trier les événements par date du plus ancien au plus récent
+  const byDateDesc = data?.focus?.slice().sort((evtA, evtB) =>
+    new Date(evtA.date) - new Date(evtB.date)
   );
+
+  // Fonction pour passer à la carte suivante
   const nextCard = () => {
-    setTimeout(
-      () => setIndex(index < byDateDesc.length ? index + 1 : 0),
-      5000
-    );
+    setIndex((prevIndex) => (prevIndex + 1) % byDateDesc.length);
   };
+
+  // Utiliser useEffect pour changer la carte toutes les 5 secondes
   useEffect(() => {
-    nextCard();
-  });
+    const interval = setInterval(nextCard, 5000);
+    return () => clearInterval(interval); // Nettoyage de l'intervalle à la désactivation du composant
+  }, [byDateDesc]);
+
+  // Si byDateDesc est vide ou n'est pas défini, afficher un message ou rien du tout
+  if (!byDateDesc || byDateDesc.length === 0) {
+    return null;
+  }
+
   return (
     <div className="SlideCardList">
-      {byDateDesc?.map((event, idx) => (
-        <>
+      {byDateDesc.map((event) => (
+        // Utilisation de event.id || event.title pour garantir une clé unique pour chaque élément
+        <div key={event.id || event.title}>
           <div
-            key={event.title}
             className={`SlideCard SlideCard--${
-              index === idx ? "display" : "hide"
+              index === byDateDesc.indexOf(event) ? "display" : "hide"
             }`}
           >
-            <img src={event.cover} alt="forum" />
+            {event.cover ? (
+              <img src={event.cover} alt={event.title} />
+            ) : (
+              // Affichage d'un message de remplacement si l'URL de l'image n'est pas définie
+              <div className="SlideCard__placeholder">Image non disponible</div>
+            )}
             <div className="SlideCard__descriptionContainer">
               <div className="SlideCard__description">
                 <h3>{event.title}</h3>
@@ -40,17 +54,19 @@ const Slider = () => {
           </div>
           <div className="SlideCard__paginationContainer">
             <div className="SlideCard__pagination">
-              {byDateDesc.map((_, radioIdx) => (
+              {byDateDesc.map((paginationEvent) => (
+                // Utilisation de event.id || event.title pour garantir une clé unique pour chaque bouton radio
                 <input
-                  key={`${event.id}`}
+                  key={paginationEvent.id || paginationEvent.title}
                   type="radio"
                   name="radio-button"
-                  checked={idx === radioIdx}
+                  checked={index === byDateDesc.indexOf(paginationEvent)}
+                  readOnly
                 />
               ))}
             </div>
           </div>
-        </>
+        </div>
       ))}
     </div>
   );
