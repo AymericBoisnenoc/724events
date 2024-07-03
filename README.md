@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 724 Events
 
 ## Description
@@ -13,3 +14,6 @@ L'application est le site d'une agence evenementielle.
 
 ## Tests
 - `yarn test`
+=======
+# 724events
+>>>>>>> 5328409b37d04b506f8d3139c0776bb6a4ae7fa7
